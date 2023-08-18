@@ -79,8 +79,8 @@ workspace extends ../models.dsl {
         developer -> repository
         repository -> pipeline
         pipeline -> codeBuilder
-        codeBuilder -> containerRegistry
         codeBuilder -> pipeline
+        codeBuilder -> containerRegistry
         pipeline -> cluster
     }
 
