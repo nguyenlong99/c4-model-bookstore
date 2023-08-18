@@ -36,7 +36,7 @@ workspace extends ../models.dsl {
                                 tags "Amazon Web Services - EC2 Instance"
 
                                 containerInstance bookEventConsumer
-                                containerInstance bookEventStream
+                                containerInstance bookEventSystem
                             }
                         }
 

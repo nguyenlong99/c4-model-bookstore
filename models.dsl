@@ -11,8 +11,10 @@ workspace {
         bookstoreSystem = softwareSystem "Bookstore System" "Allows users to view about book, and administrate the book details" "Target System" {
             # Level 2: Containers
             # <variable> = container <name> <description> <technology> <tag>
+            frontStoreApplication = container "Front-store Application" "Provide all the bookstore functionalities to both public and authorized users" "JavaScript & ReactJS"
+            backOfficeApplication = container "Back-office Application" "Provide all the bookstore administration functionalities to internal users" "JavaScript & ReactJS"
             searchWebApi = container "Search Web API" "Allows only authorized users searching books records via HTTPS API" "Go"
-            adminWebApi = container "Admin Web API" "Allows only authorized users administering books details via HTTPS API" "Go" {
+            adminWebApi = container "Admin Web API" "Allows only internal users administering books details via HTTPS API" "Go" {
                 # Level 3: Components
                 # <variable> = component <name> <description> <technology> <tag>
                 bookService = component "Book Service" "Allows administrating book details" "Go"
@@ -22,8 +24,8 @@ workspace {
             publicWebApi = container "Public Web API" "Allows public users getting books information" "Go"
             searchDatabase = container "Search Database" "Stores searchable book information" "ElasticSearch" "Database"
             bookstoreDatabase = container "Bookstore Database" "Stores book details" "PostgreSQL" "Database"
-            bookEventStream = container "Book Event Stream" "Handles book-related domain events" "Apache Kafka 3.0"
-            bookEventConsumer = container "Book Event Consumer" "Listening to domain events and write publisher to Search Database for updating" "Go"
+            bookEventSystem = container "Book Event System" "Handles the book published events" "Apache Kafka 3.0"
+            bookEventConsumer = container "Book Event Consumer" "Listening to domain events and handle book update events" "Go"
             publisherRecurrentUpdater = container "Publisher Recurrent Updater" "Listening to external events from Publisher System, and update book information" "Go"
         }
         
@@ -35,9 +37,8 @@ workspace {
         # Relationship between People and Software Systems
         # <variable> -> <variable> <description> <protocol>
         publicUser -> bookstoreSystem "View book information"
-        authorizedUser -> bookstoreSystem "Search book with more details, administrate books and their details"
-        internalUser -> bookstoreSystem "Has all functions of Authorized User and can manage the system"
-        internalUser -> authSystem "Manage Bookstore System users and their roles"
+        authorizedUser -> bookstoreSystem "Search book with more details"
+        internalUser -> bookstoreSystem "Has all functions of Authorized User, manage books and purchases information"
         bookstoreSystem -> authSystem "Register new user, and authorize user access"
         bookstoreSystem -> shippingSystem "Create and track shipping orders"
         publisherSystem -> bookstoreSystem "Publish events for new book publication, and book information updates" {
@@ -45,19 +46,25 @@ workspace {
         }
 
         # Relationship between Containers
+        authorizedUser -> frontStoreApplication "Use"
+        publicUser -> frontStoreApplication "Use"
+        internalUser -> backOfficeApplication "Use"
+        frontStoreApplication -> publicWebApi "Search books"
+        frontStoreApplication -> searchWebApi "Search books or place orders"
+        backOfficeApplication -> adminWebApi "Administrate books and purchases"
         publicUser -> publicWebApi "View book information" "JSON/HTTPS"
-        publicWebApi -> searchDatabase "Retrieve book search data" "ODBC"
+        publicWebApi -> bookstoreDatabase "Read/Write book data" "ODBC"
         authorizedUser -> searchWebApi "Search book with more details" "JSON/HTTPS"
         searchWebApi -> authSystem "Authorize user" "JSON/HTTPS"
         searchWebApi -> searchDatabase "Retrieve book search data" "ODBC"
-        authorizedUser -> adminWebApi "Administrate books and their details" "JSON/HTTPS"
+        internalUser -> adminWebApi "Manage books and purchases information" "JSON/HTTPS"
         adminWebApi -> authSystem "Authorize user" "JSON/HTTPS"
-        adminWebApi -> bookstoreDatabase "Reads/Write book detail data" "ODBC"
-        adminWebApi -> bookEventStream "Publish book update events" {
+        adminWebApi -> bookstoreDatabase "Read/Write book detail data" "ODBC"
+        adminWebApi -> bookEventSystem "Publish book update events" {
             tags "Async Request"
         }
-        bookEventStream -> bookEventConsumer "Consume book update events"
-        bookEventConsumer -> searchDatabase "Write book search data" "ODBC"
+        bookEventSystem -> bookEventConsumer "Send events to"
+        bookEventConsumer -> searchDatabase "Write book update data" "ODBC"
         publisherRecurrentUpdater -> adminWebApi "Makes API calls to" "JSON/HTTPS"
 
         # Relationship between Containers and External System
@@ -66,7 +73,7 @@ workspace {
         }
 
         # Relationship between Components
-        authorizedUser -> bookService "Administrate book details" "JSON/HTTPS"
+        internalUser -> bookService "Administrate book details" "JSON/HTTPS"
         publisherRecurrentUpdater -> bookService "Makes API calls to" "JSON/HTTPS"
         bookService -> authService "Uses"
         bookService -> bookEventPublisher "Uses"
@@ -74,7 +81,7 @@ workspace {
         # Relationship between Components and Other Containers
         authService -> authSystem "Authorize user permissions" "JSON/HTTPS"
         bookService -> bookstoreDatabase "Read/Write data" "ODBC"
-        bookEventPublisher -> bookEventStream "Publish book update events"
+        bookEventPublisher -> bookEventSystem "Publish book update events"
     }
 
     views {
