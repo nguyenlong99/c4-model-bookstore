@@ -46,9 +46,9 @@ workspace {
         }
 
         # Relationship between Containers
-        authorizedUser -> frontStoreApplication "Use"
-        publicUser -> frontStoreApplication "Use"
-        internalUser -> backOfficeApplication "Use"
+        authorizedUser -> frontStoreApplication "Uses"
+        publicUser -> frontStoreApplication "Uses"
+        internalUser -> backOfficeApplication "Uses"
         frontStoreApplication -> publicWebApi "Search books"
         frontStoreApplication -> searchWebApi "Search books or place orders"
         backOfficeApplication -> adminWebApi "Administrate books and purchases"
