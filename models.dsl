@@ -19,7 +19,7 @@ workspace {
                 # <variable> = component <name> <description> <technology> <tag>
                 bookService = component "Book Service" "Allows administrating book details" "Go"
                 authService = component "Authorizer" "Authorize users by using external Authorization System" "Go"
-                bookEventPublisher = component "Book Events Publisher" "Publishes books-related events to Events Publisher" "Go"
+                bookEventPublisher = component "Book Events Publisher" "Publishes books-related events to Book Event System" "Go"
             }
             publicWebApi = container "Public Web API" "Allows public users getting books information" "Go"
             searchDatabase = container "Search Database" "Stores searchable book information" "ElasticSearch" "Database"
@@ -30,7 +30,7 @@ workspace {
         }
         
         # External Software Systems
-        authSystem = softwareSystem "Authorization System" "The external Identiy Provider Platform" "External System"
+        authSystem = softwareSystem "Authorization System" "The external Identiy Provider System" "External System"
         publisherSystem = softwareSystem "Publisher System" "The 3rd party system of publishers that gives details about books published by them" "External System"
         shippingSystem = softwareSystem "Shipping System" "The 3rd party Shipping Service handles the book delivery" "External System"
         
@@ -68,13 +68,12 @@ workspace {
         publisherRecurrentUpdater -> adminWebApi "Makes API calls to" "JSON/HTTPS"
 
         # Relationship between Containers and External System
-        publisherSystem -> publisherRecurrentUpdater "Consume book publication update events" {
+        publisherSystem -> publisherRecurrentUpdater "Publish events for new book publication, and book information updates" {
             tags "Async Request"
         }
 
         # Relationship between Components
         internalUser -> bookService "Administrate book details" "JSON/HTTPS"
-        publisherRecurrentUpdater -> bookService "Makes API calls to" "JSON/HTTPS"
         bookService -> authService "Uses"
         bookService -> bookEventPublisher "Uses"
 
