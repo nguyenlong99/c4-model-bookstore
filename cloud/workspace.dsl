@@ -14,7 +14,7 @@ workspace extends ../models.dsl {
 
 
                     deploymentNode "prod-vpc" {
-                        tags "Amazon Web Services - VPC"
+                        tags "Amazon Web Services - Virtual private cloud VPC"
 
                         appLoadBalancer = infrastructureNode "Application Load Balancer" {
                             tags "Amazon Web Services - Elastic Load Balancing ELB Application load balancer"
@@ -22,33 +22,51 @@ workspace extends ../models.dsl {
 
                         deploymentNode "eks-cluster" {
                             tags "Amazon Web Services - Elastic Kubernetes Service"
-                        
-                            deploymentNode "ec2-a" {
-                                tags "Amazon Web Services - EC2 Instance"
 
-                                backOfficeApplicationInstance = containerInstance backOfficeApplication
-                                searchWebApiInstance = containerInstance searchWebApi
-                                publicWebApiInstance = containerInstance publicWebApi
-                                adminWebApiInstance = containerInstance adminWebApi
-                                publisherRecurrentUpdateInstance = containerInstance publisherRecurrentUpdater
+                            deploymentNode "private-net-a" { 
+                                tags "Amazon Web Services - Virtual private cloud VPC"
+
+                                deploymentNode "ec2-a" {
+                                    tags "Amazon Web Services - EC2 Instance"
+
+                                    backOfficeApplicationInstance = containerInstance backOfficeApplication
+                                    searchWebApiInstance = containerInstance searchWebApi
+                                    publicWebApiInstance = containerInstance publicWebApi
+                                    adminWebApiInstance = containerInstance adminWebApi
+                                    publisherRecurrentUpdateInstance = containerInstance publisherRecurrentUpdater
+                                }
                             }
 
-                            deploymentNode "ec2-b" {
-                                tags "Amazon Web Services - EC2 Instance"
+                            deploymentNode "private-net-b" { 
+                                tags "Amazon Web Services - Virtual private cloud VPC"
 
-                                containerInstance bookEventConsumer
-                                containerInstance bookEventSystem
+                                deploymentNode "ec2-b" {
+                                    tags "Amazon Web Services - EC2 Instance"
+
+                                    containerInstance bookEventConsumer
+                                    containerInstance bookEventSystem
+                                }
                                 deploymentNode "PostgreSQL RDS" {
                                     tags "Amazon Web Services - RDS"
                                     
                                     containerInstance bookstoreDatabase
                                 }
-                                deploymentNode "Amazon Opensearch" {
+                                deploymentNode "Amazon OpenSearch" {
                                     tags "Amazon Web Services - OpenSearch Service"
 
                                     containerInstance searchDatabase
                                 }
                             }
+                        }
+
+                        cloudFront = infrastructureNode "CloudFront" {
+                            tags "Amazon Web Services - CloudFront"
+                        }
+
+                        deploymentNode "S3" {
+                            tags "Amazon Web Services - Simple Storage Service S3"
+
+                            frontStoreApplicationInstance = containerInstance frontStoreApplication
                         }
                     }
                 }
@@ -60,6 +78,8 @@ workspace extends ../models.dsl {
             appLoadBalancer -> publicWebApiInstance "Forwards requests to" "HTTPS"
             appLoadBalancer -> searchWebApiInstance "Forwards requests to" "HTTPS"
             appLoadBalancer -> adminWebApiInstance "Forwards requests to" "HTTPS"
+            appLoadBalancer -> cloudFront "Forwards requests to" "HTTPS"
+            cloudFront -> frontStoreApplicationInstance "Forwards requests to" "HTTPS"
         }
 
         developer = person "Developer" "Internal bookstore platform developer" "User"
@@ -103,7 +123,7 @@ workspace extends ../models.dsl {
             autoLayout lr
         }
 
-        theme "https://static.structurizr.com/themes/amazon-web-services-2023.01.31/theme.json"
+        theme "https://static.structurizr.com/themes/amazon-web-services-2020.04.30/theme.json"
 
         styles {
             element "Dynamic Element" {
