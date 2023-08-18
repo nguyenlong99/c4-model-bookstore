@@ -66,7 +66,7 @@ workspace extends ../models.dsl {
             pipeline = container "CodePipeline" {
                 tags "Amazon Web Services - CodePipeline" "Dynamic Element"
             }
-            codeBuilder = container "CodeBuild" "" {
+            codeBuilder = container "CodeBuild" {
                 tags "Amazon Web Services - CodeBuild" "Dynamic Element"
             }
             containerRegistry = container "Amazon ECR" {
@@ -95,9 +95,9 @@ workspace extends ../models.dsl {
             developer -> repository "Commit, and push changes"
             repository -> pipeline "Trigger pipeline job"
             pipeline -> codeBuilder "Download source code, and start build process"
-            codeBuilder -> containerRegistry "Upload Docker image with unique tag"
-            codeBuilder -> pipeline "Return the build result"
-            pipeline -> cluster "Deploy container"
+            codeBuilder -> pipeline "Return the build result (a docker image)"
+            codeBuilder -> containerRegistry "Pushes Docker image is tagged with a unique label derived from the repository commit hash"
+            pipeline -> cluster "Deploy image"
             autoLayout lr
         }
 
