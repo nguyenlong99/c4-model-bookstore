@@ -26,6 +26,7 @@ workspace extends ../models.dsl {
                             deploymentNode "ec2-a" {
                                 tags "Amazon Web Services - EC2 Instance"
 
+                                backOfficeApplicationInstance = containerInstance backOfficeApplication
                                 searchWebApiInstance = containerInstance searchWebApi
                                 publicWebApiInstance = containerInstance publicWebApi
                                 adminWebApiInstance = containerInstance adminWebApi
@@ -37,27 +38,28 @@ workspace extends ../models.dsl {
 
                                 containerInstance bookEventConsumer
                                 containerInstance bookEventSystem
+                                deploymentNode "PostgreSQL RDS" {
+                                    tags "Amazon Web Services - RDS"
+                                    
+                                    containerInstance bookstoreDatabase
+                                }
+                                deploymentNode "Amazon Opensearch" {
+                                    tags "Amazon Web Services - OpenSearch Service"
+
+                                    containerInstance searchDatabase
+                                }
                             }
-                        }
-
-                        deploymentNode "Amazon Elasticsearch" {
-                            tags "Amazon Web Services - Elasticsearch Service"
-
-                            containerInstance searchDatabase
-                        }
-
-                        deploymentNode "PostgreSQL RDS" {
-                            tags "Amazon Web Services - RDS"
-                            
-                            containerInstance bookstoreDatabase
                         }
                     }
                 }
+                softwareSystemInstance publisherSystem
+                softwareSystemInstance authSystem
             }
-            route53 -> appLoadBalancer
-            appLoadBalancer -> publicWebApiInstance "Forwards requests to" "[HTTPS]"
-            appLoadBalancer -> searchWebApiInstance "Forwards requests to" "[HTTPS]"
-            appLoadBalancer -> adminWebApiInstance "Forwards requests to" "[HTTPS]"
+            route53 -> appLoadBalancer "Route DNS requests to" "Proxy"
+            appLoadBalancer -> backOfficeApplicationInstance "Forwards requests to" "HTTPS"
+            appLoadBalancer -> publicWebApiInstance "Forwards requests to" "HTTPS"
+            appLoadBalancer -> searchWebApiInstance "Forwards requests to" "HTTPS"
+            appLoadBalancer -> adminWebApiInstance "Forwards requests to" "HTTPS"
         }
 
         developer = person "Developer" "Internal bookstore platform developer" "User"
@@ -101,7 +103,7 @@ workspace extends ../models.dsl {
             autoLayout lr
         }
 
-        theme "https://static.structurizr.com/themes/amazon-web-services-2020.04.30/theme.json"
+        theme "https://static.structurizr.com/themes/amazon-web-services-2023.01.31/theme.json"
 
         styles {
             element "Dynamic Element" {
